@@ -15,4 +15,4 @@ function restTimer(){const active=restEndsAt>0;const left=active?Math.max(0,(res
 const baseWorkoutWithTimer=window.workout;
 window.workout=function(){let h=baseWorkoutWithTimer();return h.includes('rest-timer')?h:h.replace('<div class="card hero">',restTimer()+'<div class="card hero">')};
 const baseToggleWithTimer=window.toggle;
-window.toggle=function(ei,si){baseToggleWithTimer(ei,si);const l=currentLog();if(l?.sets?.[ei]?.[si]?.completed){const targets=reps(currentWorkout().exercises[ei]);const nextSi=si+1;const nextKey=nextSi<targets.length?{key:`${currentWorkout().id}:${ei}:${nextSi}`}:null;startRest(restDuration,nextKey)}};
+window.toggle=function(ei,si){baseToggleWithTimer(ei,si);const l=currentLog();if(l?.sets?.[ei]?.[si]?.completed){const targets=reps(currentWorkout().exercises[ei]);const nextSi=si+1;let next=null;if(nextSi<targets.length)next={key:`${currentWorkout().id}:${ei}:${nextSi}`};else if(typeof exerciseIndex!=='undefined'&&exerciseIndex+1<currentWorkout().exercises.length)next={exerciseIndex:exerciseIndex+1};startRest(restDuration,next)}};
