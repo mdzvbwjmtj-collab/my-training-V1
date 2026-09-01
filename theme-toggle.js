@@ -1,7 +1,7 @@
 (function(){
   const KEY='myTrainingTheme';
-  const sun='<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="13" fill="none" stroke="currentColor" stroke-width="4"/><g stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M32 5v9"/><path d="M32 50v9"/><path d="M5 32h9"/><path d="M50 32h9"/><path d="m13 13 6 6"/><path d="m45 45 6 6"/><path d="m51 13-6 6"/><path d="m19 45-6 6"/></g></svg>';
-  const moon='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M48 11c-3 2-7 3-11 3-13 0-23 10-23 23s10 23 23 23c9 0 17-5 21-12-3 1-6 2-9 2-13 0-23-10-23-23 0-7 3-13 8-17 4-3 9-5 14-5z" fill="currentColor"/></svg>';
+  const sun='<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><circle cx="32" cy="32" r="12.5" fill="none" stroke="currentColor" stroke-width="3.8"/><g fill="none" stroke="currentColor" stroke-width="3.8" stroke-linecap="round"><path d="M32 5v8"/><path d="M32 51v8"/><path d="M5 32h8"/><path d="M51 32h8"/><path d="M12.9 12.9l5.7 5.7"/><path d="M45.4 45.4l5.7 5.7"/><path d="M51.1 12.9l-5.7 5.7"/><path d="M18.6 45.4l-5.7 5.7"/></g></svg>';
+  const moon='<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M48 11c-3 2-7 3-11 3-13 0-23 10-23 23s10 23 23 23c9 0 17-5 21-12-3 1-6 2-9 2-13 0-23-10-23-23 0-7 3-13 8-17 4-3 9-5 14-5z" fill="currentColor"/></svg>';
   const apply=()=>document.documentElement.dataset.theme=localStorage.getItem(KEY)==='light'?'light':'dark';
   const mount=()=>{
     if(!document.body)return;
