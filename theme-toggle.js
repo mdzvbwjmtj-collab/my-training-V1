@@ -12,7 +12,7 @@
       document.body.appendChild(b);
     }
     const light=document.documentElement.dataset.theme==='light';
-    b.textContent=light?'☾':'☀︎';
+    b.innerHTML=light?'&#9790;':'<span aria-hidden="true">&#9728;</span>';
     b.title=light?'Switch to dark mode':'Switch to light mode';
     b.setAttribute('aria-label',b.title);
     if(!b.dataset.bound){
