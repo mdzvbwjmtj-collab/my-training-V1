@@ -1,37 +1,43 @@
 (function(){
-  const openState=new Set();
-  window.setFlowOpen=openState;
-  function key(ei,si){return `${currentWorkout().id}:${ei}:${si}`}
+  const openState=window.setFlowOpen=window.setFlowOpen||{};
+  const key=(ei,si)=>`${currentWorkout().id}:${ei}:${si}`;
   function enhance(){
-    document.querySelectorAll('.exercise-card').forEach(card=>{
-      if(card.dataset.setFlowReady==='1')return;
-      const rows=[...card.querySelectorAll(':scope > .set-row')];
-      if(!rows.length)return;
-      const ei=rows[0].querySelector('.set-num') ? card.querySelector('.index')?.textContent : null;
-      const exerciseIndex=[...document.querySelectorAll('.exercise-card')].indexOf(card);
+    document.querySelectorAll('.exercise-card').forEach((card,ei)=>{
+      let flow=card.querySelector('.set-flow');
+      if(!flow){
+        const rows=[...card.querySelectorAll('.set-row')];
+        if(!rows.length)return;
+        flow=document.createElement('div');flow.className='set-flow';
+        const head=card.querySelector('.log-head');
+        rows.forEach(row=>flow.appendChild(row));
+        if(head)head.after(flow);else card.appendChild(flow);
+      }
+      const rows=[...flow.querySelectorAll('.set-row')];
       rows.forEach((row,si)=>{
-        const wrap=document.createElement('div');
-        wrap.className='collapsible-set';
-        wrap.dataset.setKey=key(exerciseIndex,si);
-        const completed=row.querySelector('.check.checked')||row.querySelector('.check')?.textContent.includes('✓');
-        const shouldOpen=openState.has(wrap.dataset.setKey)||(!completed&&si===0);
-        if(shouldOpen)wrap.classList.add('open');
-        const summary=document.createElement('button');
-        summary.type='button';summary.className='set-summary';
-        summary.innerHTML=`<span>Set ${si+1}</span><span class="set-summary-status">${completed?'✓ Completed':shouldOpen?'Open':'Locked'}</span>`;
-        summary.onclick=()=>{if(wrap.classList.contains('open')){wrap.classList.remove('open');openState.delete(wrap.dataset.setKey)}else{wrap.classList.add('open');openState.add(wrap.dataset.setKey)}};
-        wrap.appendChild(summary);
-        const content=document.createElement('div');content.className='set-content';content.appendChild(row);
-        wrap.appendChild(content);summary.setAttribute('aria-expanded',String(shouldOpen));
-        card.insertBefore(wrap,card.querySelector('.log-head').nextSibling);
+        const k=key(ei,si);
+        if(openState[k]===undefined)openState[k]=(si===0);
+        let summary=row.previousElementSibling;
+        if(!summary||!summary.classList.contains('set-summary')){
+          summary=document.createElement('button');summary.type='button';summary.className='set-summary';
+          row.before(summary);
+          summary.addEventListener('click',()=>{openState[k]=!openState[k];enhance();});
+        }
+        const check=row.querySelector('.check');
+        const done=!!(check&&check.classList.contains('checked'));
+        summary.innerHTML=`<span>Set ${si+1}</span><span>${done?'✓ Completed':(openState[k]?'Open':'Locked')} <span class="set-chevron">${openState[k]?'⌃':'⌄'}</span></span>`;
+        row.style.display=openState[k]?'grid':'none';
+        row.classList.toggle('set-open',!!openState[k]);
       });
-      card.dataset.setFlowReady='1';
     });
   }
-  const observer=new MutationObserver(()=>enhance());
-  observer.observe(document.body,{childList:true,subtree:true});
-  document.addEventListener('rest-complete',e=>{
-    if(e.detail?.key){openState.add(e.detail.key);enhance();const el=document.querySelector(`[data-set-key="${CSS.escape(e.detail.key)}"]`);if(el){el.classList.add('open');el.querySelector('.set-summary')?.setAttribute('aria-expanded','true')}}
+  const originalRender=window.render;
+  window.render=function(){originalRender();setTimeout(enhance,0)};
+  document.addEventListener('rest-complete',function(e){
+    const k=e.detail&&e.detail.key;if(!k)return;
+    const parts=k.split(':');
+    Object.keys(openState).forEach(x=>{const p=x.split(':');if(p[0]===parts[0]&&p[1]===parts[1])openState[x]=false});
+    openState[k]=true;
+    render();
   });
-  setTimeout(enhance,0);
+  document.addEventListener('DOMContentLoaded',enhance);
 })();
