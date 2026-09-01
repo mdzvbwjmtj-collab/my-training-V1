@@ -13,6 +13,7 @@ const enhance=()=>{
   const toggle=document.createElement('button');
   toggle.type='button';
   toggle.className='history-toggle text-link';
+  toggle.style.cssText='display:block;margin:12px 0 2px;width:100%;cursor:pointer;text-align:left;background:none;border:0;padding:0;font:inherit;';
   const apply=()=>{
     items.forEach((row,i)=>{row.style.display=open||i<7?'':'none'});
     toggle.textContent=open?'Hide older entries':'Show full history';
@@ -22,6 +23,7 @@ const enhance=()=>{
   lastToggle=toggle;
   apply();
 };
-new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true});
+const observer=new MutationObserver(enhance);
+observer.observe(document.documentElement,{childList:true,subtree:true});
 setTimeout(enhance,0);
 })();
