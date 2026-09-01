@@ -2,13 +2,13 @@
   const KEY='myTrainingTheme';
   const apply=()=>document.documentElement.dataset.theme=localStorage.getItem(KEY)==='light'?'light':'dark';
   const mount=()=>{
+    if(!document.body)return;
     let b=document.getElementById('theme-toggle');
     if(!b){
       b=document.createElement('button');
       b.id='theme-toggle';
       b.type='button';
       b.className='theme-toggle';
-      b.setAttribute('aria-label','Switch theme');
       document.body.appendChild(b);
     }
     const light=document.documentElement.dataset.theme==='light';
@@ -18,14 +18,16 @@
     if(!b.dataset.bound){
       b.dataset.bound='1';
       b.addEventListener('click',()=>{
-        const next=document.documentElement.dataset.theme==='light'?'dark':'light';
-        localStorage.setItem(KEY,next);
+        localStorage.setItem(KEY,document.documentElement.dataset.theme==='light'?'dark':'light');
         apply();
         mount();
       });
     }
   };
   apply();
-  new MutationObserver(mount).observe(document.body,{childList:true});
-  mount();
+  const start=()=>{
+    mount();
+    new MutationObserver(mount).observe(document.body,{childList:true});
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
