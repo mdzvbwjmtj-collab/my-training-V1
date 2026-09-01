@@ -8,11 +8,12 @@
  const oldWorkout=window.workout;
  window.workout=function(){
    const w=currentWorkout(),i=clamp(),e=w.exercises[i];
-   const l=currentLog();
    const first=i===0,last=i===w.exercises.length-1;
    const card=exercise(e,i);
+   const inner=card.replace(/^<article class="card exercise-card">/,'').replace(/<\/article>$/,'');
+   const body=inner.replace(/<div class="exercise-head">[\s\S]*?<\/div><div class="previous">/,'<div class="previous">');
    const timer=restTimer();
-   return `<main class="shell exercise-page"><div class="exercise-nav-top"><button class="exercise-back" onclick="previousExercise()" ${first?'disabled':''}>‹ Previous exercise</button><span>Exercise ${i+1} of ${w.exercises.length}</span></div><div class="top"><div class="eyebrow">Workout #${w.id} · ${w.type}</div><div class="title">${i+1}. ${esc(e.name)}</div><div class="sub">Programme: ${esc(e.reps)}</div></div><section class="section"><article class="card exercise-card integrated-exercise"><div class="exercise-head"><div><div class="exercise-name"><span class="index">${i+1}</span><h3>${esc(e.name)}</h3></div><div class="muted">Programme: ${esc(e.reps)}</div></div></div>${card.replace(/^<article class="card exercise-card">/,'').replace(/<\/article>$/,'')}<div class="integrated-rest">${timer}</div></article></section><div class="exercise-nav-bottom"><button class="primary next-exercise" onclick="nextExercise()">${last?'Finish workout':'Next exercise'} <span>›</span></button></div></main>${nav('workout')}`;
+   return `<main class="shell exercise-page"><div class="exercise-nav-top"><button class="exercise-back" onclick="previousExercise()" ${first?'disabled':''}>‹ Previous exercise</button><span>Exercise ${i+1} of ${w.exercises.length}</span></div><div class="top"><div class="eyebrow">Workout #${w.id} · ${w.type}</div><div class="title">${i+1}. ${esc(e.name)}</div><div class="sub">Programme: ${esc(e.reps)}</div></div><section class="section"><article class="card exercise-card integrated-exercise">${body}<div class="integrated-rest">${timer}</div></article></section><div class="exercise-nav-bottom"><button class="primary next-exercise" onclick="nextExercise()">${last?'Finish workout':'Next exercise'} <span>›</span></button></div></main>${nav('workout')}`;
  };
  const oldRender=window.render;
  window.render=function(){oldRender();setTimeout(()=>{const card=document.querySelector('.exercise-page .exercise-card');if(card){card.dataset.setFlowReady='';if(typeof enhance==='function')enhance();}},0)};
