@@ -13,3 +13,5 @@ Mobile-first training tracker built around the user's four-day Upper / Lower pro
 
 ## Use
 Open `index.html` directly or deploy the repository with GitHub Pages.
+
+<!-- Pages deployment refresh -->
