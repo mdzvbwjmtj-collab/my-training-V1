@@ -13,7 +13,7 @@ const previousLog=id=>{const today=new Date().toISOString().slice(0,10);const ks
 const previousCompleted=()=>{const today=new Date().toISOString().slice(0,10);const ks=Object.keys(state.logs).filter(k=>k.split('::')[0]<today&&state.logs[k].done).sort().reverse();return ks.length?{id:ks[0].split('::')[1],log:state.logs[ks[0]]}:null};
 function go(screen){if(state.activeWorkout)return;state.screen=screen;save();render()}
 function choose(id){if(state.activeWorkout)return;state.selected=id;state.screen='workout';save();render()}
-function start(){state.activeWorkout=true;state.screen='workout';save();render()}
+function start(){state.activeWorkout=true;state.screen='workout';if(window.exercisePageState)window.exercisePageState.index=0;save();render()}
 function stopWorkout(){if(!state.activeWorkout)return;if(!confirm('Stop this workout? Your sets will be saved, but the workout will not be marked completed.'))return;state.activeWorkout=false;state.screen='home';save();if(typeof stopRest==='function')stopRest();render()}
 function setValue(ei,si,field,value){const l=currentLog();l.sets[ei]=l.sets[ei]||{};l.sets[ei][si]=l.sets[ei][si]||{};l.sets[ei][si][field]=value===''?'':Number(value);l.sets[ei][si].completed=Boolean(l.sets[ei][si].weight!==''&&l.sets[ei][si].weight!=null&&l.sets[ei][si].reps!==''&&l.sets[ei][si].reps!=null);state.logs[logKey()]=l;save();render()}
 function toggle(ei,si){const l=currentLog();l.sets[ei]=l.sets[ei]||{};l.sets[ei][si]=l.sets[ei][si]||{};l.sets[ei][si].completed=!l.sets[ei][si].completed;state.logs[logKey()]=l;save();render()}
