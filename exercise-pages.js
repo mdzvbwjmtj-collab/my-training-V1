@@ -1,18 +1,14 @@
 (function(){
  const pageState=window.exercisePageState=window.exercisePageState||{index:0};
- state.workoutSession=state.workoutSession||{active:false,workoutId:null,exerciseIndex:0};
- if(state.workoutSession.active && state.workoutSession.workoutId===state.selected){pageState.index=Number(state.workoutSession.exerciseIndex)||0}else if(!state.workoutSession.active){pageState.index=0}
  const clamp=()=>{const w=currentWorkout();pageState.index=Math.max(0,Math.min(w.exercises.length-1,Number(pageState.index)||0));return pageState.index};
- function beginSession(){state.workoutSession={active:true,workoutId:state.selected,exerciseIndex:0};pageState.index=0;state.screen='workout';save();render()}
- function stopWorkout(){if(!confirm('Stop this workout? Your logged sets will be saved, but the workout will not be marked completed.'))return;stopRest();state.workoutSession={active:false,workoutId:null,exerciseIndex:0};state.screen='home';save();render()}
- function goExercise(index){pageState.index=Number(index);clamp();state.workoutSession.active=true;state.workoutSession.workoutId=state.selected;state.workoutSession.exerciseIndex=pageState.index;stopRest();save();render()}
+ function beginSession(){state.activeWorkout=true;state.screen='workout';pageState.index=0;save();render()}
+ function stopSession(){if(!state.activeWorkout)return;if(!confirm('Stop this workout? Your logged sets will be saved, but the workout will not be marked completed.'))return;state.activeWorkout=false;state.screen='home';pageState.index=0;if(typeof stopRest==='function')stopRest();save();render()}
+ function goExercise(index){pageState.index=Number(index);clamp();save();render()}
  window.start=beginSession;
- window.stopWorkout=stopWorkout;
+ window.stopWorkout=stopSession;
  window.goExercise=goExercise;
  window.nextExercise=()=>{const w=currentWorkout(),i=clamp();if(i<w.exercises.length-1)goExercise(i+1);else finish()};
  window.previousExercise=()=>{const i=clamp();if(i>0)goExercise(i-1)};
- const originalFinish=window.finish;
- window.finish=function(){if(!confirm('Finish workout? This will mark the workout as completed.'))return;stopRest();originalFinish();state.workoutSession={active:false,workoutId:null,exerciseIndex:0};state.screen='home';save();render()};
  const oldWorkout=window.workout;
  window.workout=function(){
    const w=currentWorkout(),i=clamp(),e=w.exercises[i];
