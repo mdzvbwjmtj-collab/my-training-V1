@@ -12,7 +12,9 @@
    const current=targets.map((_,si)=>l.sets?.[i]?.[si]).filter(Boolean);
    const completed=current.filter(x=>x.completed).length;
    const first=i===0,last=i===w.exercises.length-1;
-   return `<main class="shell exercise-page"><div class="exercise-nav-top"><button class="exercise-back" onclick="previousExercise()" ${first?'disabled':''}>‹ Previous exercise</button><span>Exercise ${i+1} of ${w.exercises.length}</span></div><div class="top"><div class="eyebrow">Workout #${w.id} · ${w.type}</div><div class="title">${i+1}. ${esc(e.name)}</div><div class="sub">Programme: ${esc(e.reps)}</div></div>${restTimer()}<section class="section">${exercise(e,i)}</section><div class="exercise-nav-bottom"><button class="primary next-exercise" onclick="nextExercise()">${last?'Finish workout':'Next exercise'} <span>›</span></button></div></main>${nav('workout')}`;
+   let card=exercise(e,i);
+   card=card.replace('</article>',`${restTimer()}</article>`);
+   return `<main class="shell exercise-page"><div class="exercise-nav-top"><button class="exercise-back" onclick="previousExercise()" ${first?'disabled':''}>‹ Previous exercise</button><span>Exercise ${i+1} of ${w.exercises.length}</span></div><div class="top"><div class="eyebrow">Workout #${w.id} · ${w.type}</div><div class="title">${i+1}. ${esc(e.name)}</div><div class="sub">Programme: ${esc(e.reps)}</div></div><section class="section">${card}</section><div class="exercise-nav-bottom"><button class="primary next-exercise" onclick="nextExercise()">${last?'Finish workout':'Next exercise'} <span>›</span></button></div></main>${nav('workout')}`;
  };
  const oldRender=window.render;
  window.render=function(){oldRender();setTimeout(()=>{const card=document.querySelector('.exercise-page .exercise-card');if(card){card.dataset.setFlowReady='';if(typeof enhance==='function')enhance();}},0)};
