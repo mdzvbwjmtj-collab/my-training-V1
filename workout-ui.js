@@ -6,11 +6,10 @@ window.previousExercise=()=>{const i=clamp();if(i>0)goExercise(i-1)};
 window.nextExercise=()=>{const w=currentWorkout(),i=clamp();if(i<w.exercises.length-1)goExercise(i+1);else finish()};
 const oldChoose=window.choose;window.choose=function(id){page.index=0;oldChoose(id)};
 const oldStart=window.start;window.start=function(){page.index=0;oldStart()};
-const oldWorkout=window.workout;
 window.workout=function(){
  const w=currentWorkout(),i=clamp(),e=w.exercises[i],l=currentLog(),targets=reps(e),done=targets.filter((_,si)=>l.sets?.[i]?.[si]?.completed).length;
  const first=i===0,last=i===w.exercises.length-1;
- return `<main class="shell exercise-page"><div class="exercise-nav-top"><button class="exercise-back" onclick="previousExercise()" ${first?'disabled':''}>‹ Previous exercise</button><span>Exercise ${i+1} of ${w.exercises.length}</span></div><div class="top"><div class="eyebrow">Workout #${w.id} · ${w.type}</div><div class="title">${i+1}. ${esc(e.name)}</div><div class="sub">Programme: ${esc(e.reps)}</div></div>${restTimer()}<section class="section">${exercise(e,i)}</section><div class="exercise-nav-bottom"><button class="primary next-exercise" onclick="nextExercise()">${last?'Finish workout':'Next exercise'} <span>›</span></button></div></main>${nav('workout')}`;
+ return `<main class="shell exercise-page" data-exercise-index="${i}"><div class="exercise-nav-top"><button class="exercise-back" onclick="previousExercise()" ${first?'disabled':''}>‹ Previous exercise</button><span>Exercise ${i+1} of ${w.exercises.length}</span></div><div class="top"><div class="eyebrow">Workout #${w.id} · ${w.type}</div><div class="title">${i+1}. ${esc(e.name)}</div><div class="sub">Programme: ${esc(e.reps)}</div></div>${restTimer()}<section class="section">${exercise(e,i)}</section><div class="exercise-nav-bottom"><button class="primary next-exercise" onclick="nextExercise()">${last?'Finish workout':'Next exercise'} <span>›</span></button></div></main>${nav('workout')}`;
 };
 const oldToggle=window.toggle;
 window.toggle=function(ei,si){oldToggle(ei,si);const w=currentWorkout(),l=currentLog(),targets=reps(w.exercises[ei]);if(l?.sets?.[ei]?.[si]?.completed&&ei===clamp()&&si===targets.length-1){if(ei<w.exercises.length-1)startRest(restDuration,{exercise:ei+1});else startRest(restDuration,{exercise:'finish'});}};
