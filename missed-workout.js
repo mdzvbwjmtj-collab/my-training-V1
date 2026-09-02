@@ -1,18 +1,20 @@
 (()=>{
 const S='myTrainingSchedule',P='myTrainingProgramme',D='myTrainingDashboard';
 const read=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}},write=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const today=()=>new Date().toISOString().slice(0,10);
-const missed=()=>{const a=read(S)||[],d=read(D)||{},t=today();return a.filter(x=>!x.completedLater&&(x.originalDate||x.date<t&&!d.logs?.[`${x.date}::${x.id}`]?.done)).sort((a,b)=>String(a.originalDate||a.date).localeCompare(String(b.originalDate||b.date)))};
-const todaySession=()=>{const a=read(S)||[],t=today();return a.find(x=>x.date===t)};
-const nextTrainingDates=(days,count,start)=>{const out=[],d=new Date(`${start}T12:00:00`);for(let i=0;out.length<count&&i<730;i++){const wd=(d.getDay()+6)%7;if(days.includes(wd))out.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1)}return out};
+const localIso=d=>{const pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const today=()=>localIso(new Date());
+const isDone=(x,d)=>Boolean(d.logs?.[`${x.date}::${x.id}`]?.done||x.completedLater||x.completed);
+const missed=()=>{const a=read(S)||[],d=read(D)||{},t=today();return a.filter(x=>!x.completedLater&&!x.completed&&((x.originalDate&&x.originalDate<t)||(!x.originalDate&&x.date<t&&!isDone(x,d)))).sort((a,b)=>String(a.originalDate||a.date).localeCompare(String(b.originalDate||b.date)))};
+const todaySession=()=>{const a=read(S)||[],d=read(D)||{},t=today();return a.find(x=>x.date===t&&!isDone(x,d))};
+const nextTrainingDates=(days,count,start)=>{const out=[],d=new Date(`${start}T12:00:00`);for(let i=0;out.length<count&&i<730;i++){const wd=(d.getDay()+6)%7;if(days.includes(wd))out.push(localIso(d));d.setDate(d.getDate()+1)}return out};
 const moveMissedIntoSequence=(x)=>{
  const a=read(S)||[],p=read(P)||{},d=read(D)||{},t=today();
- const moving=a.filter(q=>q!==x&&q.date>=t&&!d.logs?.[`${q.date}::${q.id}`]?.done).sort((u,v)=>String(u.date).localeCompare(String(v.date))||String(u.id).localeCompare(String(v.id)));
+ const moving=a.filter(q=>q!==x&&q.date>=t&&!isDone(q,d)).sort((u,v)=>String(u.date).localeCompare(String(v.date))||String(u.id).localeCompare(String(v.id)));
  const fixed=a.filter(q=>q!==x&&!moving.includes(q));
  const days=Array.isArray(p.days)?p.days:[0,1,2,3];
- const tomorrow=(()=>{const z=new Date(`${t}T12:00:00`);z.setDate(z.getDate()+1);return z.toISOString().slice(0,10)})();
- const dates=nextTrainingDates(days,moving.length,tomorrow);
- x.originalDate=x.date;
+ const tomorrowDate=(()=>{const z=new Date(`${t}T12:00:00`);z.setDate(z.getDate()+1);return localIso(z)})();
+ const dates=nextTrainingDates(days,moving.length,tomorrowDate);
+ x.originalDate=x.originalDate||x.date;
  x.date=t;
  moving.forEach((q,i)=>{if(dates[i])q.date=dates[i]});
  write(S,[...fixed,x,...moving].sort((u,v)=>String(u.date).localeCompare(String(v.date))||String(u.id).localeCompare(String(v.id))));
