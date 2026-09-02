@@ -14,8 +14,6 @@ const moveMissedIntoSequence=(x)=>{
  const dates=nextTrainingDates(days,moving.length,tomorrow);
  x.originalDate=x.date;
  x.date=t;
- x.completedLater=true;
- x.completedOn=t;
  moving.forEach((q,i)=>{if(dates[i])q.date=dates[i]});
  write(S,[...fixed,x,...moving].sort((u,v)=>String(u.date).localeCompare(String(v.date))||String(u.id).localeCompare(String(v.id))));
 };
@@ -23,6 +21,6 @@ const css=()=>{if(document.getElementById('missed-workout-css'))return;const s=d
 const close=()=>document.getElementById('missed-workout-overlay')?.remove();
 const launch=(id,original,sequence)=>{const d=read(D)||{};d.selected=id;d.screen='workout';d.activeWorkout=false;write(D,d);if(sequence)moveMissedIntoSequence(sequence);close();original()};
 const show=(m,original)=>{css();const x=m[0],ts=todaySession();const overlay=document.createElement('div');overlay.id='missed-workout-overlay';overlay.className='missed-overlay';overlay.innerHTML=`<section class="missed-dialog" role="dialog" aria-modal="true"><div class="eyebrow">Missed workout</div><h2>You have a missed workout</h2><p><span class="missed-name">Workout #${x.id}</span> was scheduled for ${new Date(`${x.date}T12:00:00`).toLocaleDateString('en-GB',{day:'numeric',month:'long'})}.</p><p>Would you like to do the missed workout today, or continue with today's scheduled workout?</p><div class="missed-actions"><button class="missed-do" data-choice="do">Do missed workout</button>${ts?'<button class="missed-skip" data-choice="skip">Skip to today\'s workout</button>':''}<button class="missed-cancel" data-choice="cancel">Cancel</button></div></section>`;document.body.appendChild(overlay);overlay.addEventListener('click',e=>{const b=e.target.closest('[data-choice]');if(!b)return;const choice=b.dataset.choice;if(choice==='cancel'){close();return}if(choice==='do'){launch(x.id,original,x);return}if(choice==='skip'&&ts){launch(ts.id,original,null)}});};
-const install=()=>{const original=window.start;if(typeof original!=='function'||original.__missedBridge)return;const wrapped=function(){if(window.__startingMissed)return;const m=missed();if(m.length){show(m,original);return}original()};wrapped.__missedBridge=true;window.start=wrapped;const finish=window.finishWorkout;if(typeof finish==='function'&&!finish.__missedBridge){const f=function(){const d=read(D)||{},id=d.selected;const a=read(S)||[],x=a.find(q=>String(q.id)===String(id)&&q.date<today());finish();if(x){x.completedLater=true;x.completedOn=today();write(S,a)}};f.__missedBridge=true;window.finishWorkout=f}};
+const install=()=>{const original=window.start;if(typeof original!=='function'||original.__missedBridge)return;const wrapped=function(){if(window.__startingMissed)return;const m=missed();if(m.length){show(m,original);return}original()};wrapped.__missedBridge=true;window.start=wrapped;const finish=window.finishWorkout;if(typeof finish==='function'&&!finish.__missedBridge){const f=function(){const d=read(D)||{},id=d.selected;const a=read(S)||[],x=a.find(q=>String(q.id)===String(id)&&q.originalDate);finish();if(x){x.completedLater=true;x.completedOn=today();write(S,a)}};f.__missedBridge=true;window.finishWorkout=f}};
 setTimeout(install,0);setTimeout(install,100);setTimeout(install,500);
 })();
