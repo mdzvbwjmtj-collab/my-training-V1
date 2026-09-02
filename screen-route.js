@@ -1,0 +1,1 @@
+(()=>{const s=new URLSearchParams(location.search).get('screen');if(!s)return;try{const k='myTrainingDashboard',d=JSON.parse(localStorage.getItem(k)||'{}');d.screen=s;d.activeWorkout=false;localStorage.setItem(k,JSON.stringify(d))}catch(e){}})();
