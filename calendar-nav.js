@@ -1,16 +1,11 @@
 (()=>{
-const add=()=>{
- const n=document.querySelector('.nav');
- if(!n)return;
- let p=n.querySelector('.plan-link');
- if(!p){
-  const old=[...n.children].find(x=>x.tagName==='BUTTON'&&/Plan/.test(x.textContent||''));
-  if(old){p=document.createElement('a');p.className='plan-link';p.href='plan.html';p.innerHTML='☷<span>Plan</span>';old.replaceWith(p)}
- }
- let c=n.querySelector('.calendar-link');
- if(!c){c=document.createElement('a');c.className='calendar-link';c.href='calendar.html';c.innerHTML='▣<span>Calendar</span>';const home=n.children[0];n.insertBefore(c,n.children[1]||null)}
-};
-const original=window.go;if(typeof original==='function'&&!original.__calendarNav){const go=(s)=>{original(s);setTimeout(add,0)};go.__calendarNav=true;window.go=go}
-setTimeout(add,0);setTimeout(add,100);setTimeout(add,500);
+const STYLE_ID='unified-app-nav-style';
+const style=`.app-nav{position:fixed!important;z-index:50!important;left:0!important;right:0!important;bottom:0!important;height:76px!important;background:rgba(10,10,10,.97)!important;border-top:1px solid #292929!important;display:flex!important;align-items:stretch!important;justify-content:center!important;gap:0!important;padding:7px 8px!important;backdrop-filter:blur(14px)!important;box-sizing:border-box!important}.app-nav>*{color:#858585!important;text-decoration:none!important;display:flex!important;flex:1 1 0!important;min-width:0!important;max-width:110px!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;padding:4px 6px!important;margin:0!important;border:0!important;background:transparent!important;font:inherit!important;font-size:10px!important;line-height:1!important;text-align:center!important;box-sizing:border-box!important}.app-nav>* .app-nav-icon{display:block!important;font-size:20px!important;line-height:22px!important;height:22px!important}.app-nav>* span:last-child{display:block!important;font-size:10px!important;line-height:12px!important;white-space:nowrap!important}.app-nav>.active{color:#fff!important;font-weight:700!important}.app-nav>*:visited{color:#858585!important}.app-nav>.active:visited{color:#fff!important}@media(max-width:600px){.app-nav{height:76px!important;padding:7px 5px!important}.app-nav>*{max-width:none!important;padding:4px 3px!important}.app-nav>* .app-nav-icon{font-size:20px!important}}html[data-theme="light"] .app-nav{background:rgba(250,250,250,.97)!important;border-color:#d5d5d5!important}html[data-theme="light"] .app-nav>*{color:#777!important}html[data-theme="light"] .app-nav>.active{color:#050505!important}`;
+const installStyle=()=>{if(document.getElementById(STYLE_ID))return;const s=document.createElement('style');s.id=STYLE_ID;s.textContent=style;(document.head||document.documentElement).appendChild(s)};
+const make=(href,icon,label,active)=>{const a=document.createElement('a');a.href=href;a.className=active?'active':'';a.innerHTML=`<span class="app-nav-icon">${icon}</span><span>${label}</span>`;return a};
+const normalize=()=>{installStyle();const n=document.querySelector('.nav');if(!n)return;n.classList.add('app-nav');const items=[...n.children];const hasExpected=items.length===4&&items.every(x=>x.tagName==='A');if(hasExpected)return;const activeText=items.find(x=>x.classList.contains('active'))?.textContent||'';n.replaceChildren(make('index.html?screen=home','⌂','Home',/Home/.test(activeText)),make('calendar.html','▦','Calendar',/Calendar/.test(activeText)),make('plan.html','☷','Plan',/Plan/.test(activeText)),make('index.html?screen=progress','⌁','Progress',/Progress/.test(activeText)))};
+installStyle();
+const observer=new MutationObserver(()=>normalize());observer.observe(document.documentElement,{childList:true,subtree:true});
+setTimeout(normalize,0);setTimeout(normalize,100);setTimeout(normalize,500);
 if(!document.querySelector('script[data-missed-workout]')){const s=document.createElement('script');s.src='missed-workout.js?v=2';s.dataset.missedWorkout='1';document.body.appendChild(s)}
 })();
