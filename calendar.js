@@ -12,7 +12,7 @@ const dayKey=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
 const monthName=d=>d.toLocaleDateString('en-GB',{month:'long',year:'numeric'}).toUpperCase();
 const labels=['MON','TUE','WED','THU','FRI','SAT','SUN'];
 let viewDate=new Date(new Date().getFullYear(),new Date().getMonth(),1);
-let calendarOpen=false,setupOpen=false,editing=false,editingDays=null;
+let calendarOpen=false,setupOpen=false,editing=false,editingDays=null,startWrapped=false;
 const icons={
  dumbbell:`<svg class="calendar-icon dumbbell" viewBox="0 0 44 30" aria-hidden="true"><path d="M7 8v14M2 10v10M12 5v20M32 5v20M37 8v14M42 10v10M12 15h20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`,
  trophy:`<svg class="calendar-icon trophy" viewBox="0 0 44 34" aria-hidden="true"><path d="M14 4h16v8c0 6-3 10-8 10s-8-4-8-10V4Z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M14 7H7v3c0 5 3 7 7 7M30 7h7v3c0 5-3 7-7 7M22 22v5M16 30h12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
@@ -38,7 +38,8 @@ window.calendarMonth=n=>{viewDate=new Date(viewDate.getFullYear(),viewDate.getMo
 window.calendarToday=()=>{const d=new Date();viewDate=new Date(d.getFullYear(),d.getMonth(),1);render(calendarPage())};
 window.calendarDay=date=>{const x=schedule().find(q=>q.date===date);if(!x)return;const w=(window.PROGRAM||[]).find(q=>q.id===x.id);if(w&&typeof window.choose==='function')window.choose(x.id)};
 function addCalendarButton(){if(calendarOpen||setupOpen)return;const n=document.querySelector('.nav');if(!n||n.querySelector('[data-calendar]'))return;const b=document.createElement('button');b.type='button';b.dataset.calendar='1';b.innerHTML='▣<span>Calendar</span>';b.onclick=()=>window.calendarNav('calendar');n.insertBefore(b,n.children[1]||null)}
-new MutationObserver(addCalendarButton).observe(document.documentElement,{childList:true,subtree:true});
-setTimeout(addCalendarButton,100);
-setInterval(addCalendarButton,500);
+function wrapStart(){if(startWrapped||typeof window.start!=='function')return;const original=window.start;window.start=()=>{const a=schedule(),done=completedDates(),td=today(),missed=a.filter(x=>x?.date<td&&!done.has(x.date)).sort((x,y)=>x.date.localeCompare(y.date)||String(x.id).localeCompare(String(y.id)))[0];if(missed){const todayWorkout=a.find(x=>x?.date===td),missedLabel=new Date(`${missed.date}T12:00:00`).toLocaleDateString('en-GB',{day:'numeric',month:'long'}),takeMissed=window.confirm(`You missed Workout #${missed.id} on ${missedLabel}.\n\nOK = do the missed workout now\nCancel = skip it and do today's workout.`),target=takeMissed?missed:todayWorkout;if(target){try{const d=JSON.parse(localStorage.getItem('myTrainingDashboard')||'{}');d.selected=String(target.id);localStorage.setItem('myTrainingDashboard',JSON.stringify(d))}catch{}}}original()};startWrapped=true}
+new MutationObserver(()=>{addCalendarButton();wrapStart()}).observe(document.documentElement,{childList:true,subtree:true});
+setTimeout(()=>{addCalendarButton();wrapStart()},100);
+setInterval(()=>{addCalendarButton();wrapStart()},500);
 })();
