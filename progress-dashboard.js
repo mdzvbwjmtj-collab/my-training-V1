@@ -1,17 +1,17 @@
 (()=>{
 const SEED=[['2026-08-11',97],['2026-08-16',96.5],['2026-08-18',95.3],['2026-08-19',95.3],['2026-08-20',94.4],['2026-08-21',94.6],['2026-08-22',95],['2026-08-23',95],['2026-08-24',94.5],['2026-08-25',94.3],['2026-08-26',94],['2026-08-27',94],['2026-08-28',94],['2026-08-29',94],['2026-08-30',95.1],['2026-08-31',94.7],['2026-09-01',94.4]];
 let range=1,lastSig='';
-function data(){try{const a=JSON.parse(localStorage.getItem('myTrainingWeights')||'null');if(Array.isArray(a)&&a.length)return a.sort((x,y)=>x.date.localeCompare(y.date)).map(x=>[x.date,Number(x.weight)]).filter(x=>Number.isFinite(x[1]));}catch{}return SEED}
+function data(){try{const a=JSON.parse(localStorage.getItem('myTrainingWeights')||'null');if(Array.isArray(a)&&a.length)return a.sort((x,y)=>x.date.localeCompare(y.date)).map(x=>[x.date,Number(x.weight)]).filter(x=>/^\\d{4}-\\d{2}-\\d{2}$/.test(x[0])&&Number.isFinite(x[1]));}catch{}return SEED}
 function draw(force=false){
  const main=document.querySelector('main.shell');
  if(!main||main.querySelector('.top .title')?.textContent.trim()!=='Your progress')return;
- const all=data(),sig=JSON.stringify(all)+'|'+range;if(!force&&sig===lastSig)return;lastSig=sig;
+ const all=data(),latestDate=all.length?all[all.length-1][0]:new Date().toISOString().slice(0,10),sig=JSON.stringify(all)+'|'+range;if(!force&&sig===lastSig)return;lastSig=sig;
  let card=document.getElementById('weight-chart-card');
  if(!card){card=document.createElement('div');card.id='weight-chart-card';card.className='card';main.querySelector('.top').insertAdjacentElement('afterend',card)}
- const now=new Date('2026-09-01T00:00:00'),start=new Date(now);start.setMonth(start.getMonth()-range);
+ const now=new Date(latestDate+'T00:00:00'),start=new Date(now);start.setMonth(start.getMonth()-range);
  const shown=all.filter(d=>{const q=new Date(d[0]+'T00:00:00');return q>=start&&q<=now}),pts=shown.length?shown:all,vals=pts.map(d=>d[1]);
- const min=Math.floor(Math.min(...vals)-.5),max=Math.ceil(Math.max(...vals)+.5),W=720,H=300,L=55,R=18,T=30,B=55,startMs=start.getTime(),span=now.getTime()-startMs;
- const x=d=>L+(new Date(d+'T00:00:00').getTime()-startMs)*(W-L-R)/span,y=v=>T+(max-v)/(max-min||1)*(H-T-B);
+ const min=Math.floor(Math.min(...vals)-.5),max=Math.ceil(Math.max(...vals)+.5),W=720,H=300,L=55,R=18,T=30,B=55,startMs=start.getTime(),span=Math.max(1,now.getTime()-startMs);
+ const x=d=>Math.max(L,Math.min(W-R,L+(new Date(d+'T00:00:00').getTime()-startMs)*(W-L-R)/span)),y=v=>T+(max-v)/(max-min||1)*(H-T-B);
  const ticks=[];for(let v=min;v<=max;v++)ticks.push(v);
  const grid=ticks.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" opacity=".14"/><text x="${L-9}" y="${y(v)+4}" fill="currentColor" opacity=".62" font-size="12" text-anchor="end">${v}</text>`).join('');
  const points=pts.map(d=>`${x(d[0])},${y(d[1])}`).join(' ');
