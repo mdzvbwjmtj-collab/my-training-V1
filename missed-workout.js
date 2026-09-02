@@ -4,17 +4,20 @@ const read=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{retu
 const today=()=>new Date().toISOString().slice(0,10);
 const missed=()=>{const a=read(S)||[],d=read(D)||{},t=today();return a.filter(x=>x.date<t&&!x.completedLater&&!d.logs?.[`${x.date}::${x.id}`]?.done).sort((a,b)=>String(a.date).localeCompare(String(b.date)))};
 const todaySession=()=>{const a=read(S)||[],t=today();return a.find(x=>x.date===t)};
-const completed=id=>{const d=read(D)||{},a=read(S)||[],x=a.find(q=>String(q.id)===String(id));return !!(x&&d.logs?.[`${x.date}::${x.id}`]?.done)};
 const nextTrainingDates=(days,count,start)=>{const out=[],d=new Date(`${start}T12:00:00`);for(let i=0;out.length<count&&i<730;i++){const wd=(d.getDay()+6)%7;if(days.includes(wd))out.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1)}return out};
 const moveMissedIntoSequence=(x)=>{
  const a=read(S)||[],p=read(P)||{},d=read(D)||{},t=today();
  const moving=a.filter(q=>q!==x&&q.date>=t&&!d.logs?.[`${q.date}::${q.id}`]?.done).sort((u,v)=>String(u.date).localeCompare(String(v.date))||String(u.id).localeCompare(String(v.id)));
  const fixed=a.filter(q=>q!==x&&!moving.includes(q));
  const days=Array.isArray(p.days)?p.days:[0,1,2,3];
- const dates=nextTrainingDates(days,moving.length,(()=>{const z=new Date(`${t}T12:00:00`);z.setDate(z.getDate()+1);return z.toISOString().slice(0,10)})());
+ const tomorrow=(()=>{const z=new Date(`${t}T12:00:00`);z.setDate(z.getDate()+1);return z.toISOString().slice(0,10)})();
+ const dates=nextTrainingDates(days,moving.length,tomorrow);
+ x.originalDate=x.date;
  x.date=t;
+ x.completedLater=true;
+ x.completedOn=t;
  moving.forEach((q,i)=>{if(dates[i])q.date=dates[i]});
- write(S,[...fixed,x,...moving].sort((u,v)=>String(u.date).localeCompare(String(v.date))||String(u.id).localeCompare(String(v.id)));
+ write(S,[...fixed,x,...moving].sort((u,v)=>String(u.date).localeCompare(String(v.date))||String(u.id).localeCompare(String(v.id))));
 };
 const css=()=>{if(document.getElementById('missed-workout-css'))return;const s=document.createElement('style');s.id='missed-workout-css';s.textContent='.missed-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.68);display:grid;place-items:center;padding:20px}.missed-dialog{width:min(520px,100%);background:#151515;color:#f5f5f5;border:1px solid #3a3a3a;border-radius:22px;padding:24px;box-shadow:0 24px 70px rgba(0,0,0,.45)}.missed-dialog h2{margin:0 0 8px;font-size:26px}.missed-dialog p{color:#aaa;line-height:1.45;margin:0 0 20px}.missed-dialog .missed-name{font-weight:800;color:#fff}.missed-actions{display:grid;gap:10px}.missed-actions button{border-radius:12px;padding:14px 16px;font-weight:800;font-size:15px}.missed-do{border:0;background:#fff;color:#050505}.missed-skip{border:1px solid #3a3a3a;background:#101010;color:#fff}.missed-cancel{border:0;background:transparent;color:#999;padding:8px!important;font-weight:600!important}html[data-theme="light"] .missed-dialog{background:#f5f5f5;color:#050505;border-color:#d5d5d5}html[data-theme="light"] .missed-dialog p{color:#666}html[data-theme="light"] .missed-dialog .missed-name{color:#050505}html[data-theme="light"] .missed-skip{background:#fff;color:#111;border-color:#ccc}';document.head.appendChild(s)};
 const close=()=>document.getElementById('missed-workout-overlay')?.remove();
