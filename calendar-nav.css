@@ -1,0 +1,1 @@
+.nav .calendar-link{display:flex;flex:1;min-width:0;align-items:center;justify-content:center;gap:4px;border:0;background:none;color:inherit;text-decoration:none;font:inherit;cursor:pointer;padding:0}.nav .calendar-link span{display:block}.nav .calendar-link.active{font-weight:600}
