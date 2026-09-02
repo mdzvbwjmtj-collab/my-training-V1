@@ -1,23 +1,18 @@
 (()=>{
-const KEY='myTrainingSchedule', PROGRAM_KEY='myTrainingProgramme';
+const KEY='myTrainingSchedule',PROGRAM_KEY='myTrainingProgramme';
 const pad=n=>String(n).padStart(2,'0');
 const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const today=()=>iso(new Date());
 const read=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}};
 const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const programme=()=>read(PROGRAM_KEY);
-const schedule=()=>read(KEY)||[];
+const programme=()=>read(PROGRAM_KEY),schedule=()=>read(KEY)||[];
 const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dayKey=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
 const monthName=d=>d.toLocaleDateString('en-GB',{month:'long',year:'numeric'}).toUpperCase();
 const labels=['MON','TUE','WED','THU','FRI','SAT','SUN'];
 let viewDate=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 let calendarOpen=false,setupOpen=false,editing=false,editingDays=null,startWrapped=false;
-const icons={
- dumbbell:`<svg class="calendar-icon dumbbell" viewBox="0 0 44 30" aria-hidden="true"><path d="M7 8v14M2 10v10M12 5v20M32 5v20M37 8v14M42 10v10M12 15h20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`,
- trophy:`<svg class="calendar-icon trophy" viewBox="0 0 44 34" aria-hidden="true"><path d="M14 4h16v8c0 6-3 10-8 10s-8-4-8-10V4Z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M14 7H7v3c0 5 3 7 7 7M30 7h7v3c0 5-3 7-7 7M22 22v5M16 30h12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,
- calendar:`<svg class="calendar-head-icon" viewBox="0 0 28 28" aria-hidden="true"><rect x="3" y="5" width="22" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M8 3v5M20 3v5M3 11h22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="19" cy="19" r="3" fill="currentColor"/></svg>`
-};
+const icons={dumbbell:`<svg class="calendar-icon dumbbell" viewBox="0 0 44 30" aria-hidden="true"><path d="M7 8v14M2 10v10M12 5v20M32 5v20M37 8v14M42 10v10M12 15h20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`,trophy:`<svg class="calendar-icon trophy" viewBox="0 0 44 34" aria-hidden="true"><path d="M14 4h16v8c0 6-3 10-8 10s-8-4-8-10V4Z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M14 7H7v3c0 5 3 7 7 7M30 7h7v3c0 5-3 7-7 7M22 22v5M16 30h12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`,calendar:`<svg class="calendar-head-icon" viewBox="0 0 28 28" aria-hidden="true"><rect x="3" y="5" width="22" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M8 3v5M20 3v5M3 11h22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="19" cy="19" r="3" fill="currentColor"/></svg>`};
 function completedDates(){const out=new Set(),data=read('myTrainingDashboard');Object.entries(data?.logs||{}).forEach(([k,v])=>{if(v?.done){const d=k.split('::')[0];if(d)out.add(d)}});return out}
 function prDates(){const out=new Set(),data=read('myTrainingDashboard');const has=v=>{if(!v||typeof v!=='object')return false;if(Array.isArray(v))return v.some(has);return Object.entries(v).some(([k,x])=>(/(^|_|-)(pr|personal.?best|personal.?record)(_|-|$)/i.test(k)&&(x===true||(Array.isArray(x)&&x.length)||(x&&typeof x==='object')))||has(x))};Object.entries(data?.logs||{}).forEach(([k,v])=>{if(has(v)){const d=k.split('::')[0];if(d)out.add(d)}});return out}
 function nextDates(days,count,start,blocked=new Set()){const out=[],d=new Date(`${start}T12:00:00`);for(let guard=0;out.length<count&&guard<730;guard++){const s=iso(d);if(days.includes((d.getDay()+6)%7)&&!blocked.has(s))out.push(s);d.setDate(d.getDate()+1)}return out}
@@ -39,7 +34,6 @@ window.calendarToday=()=>{const d=new Date();viewDate=new Date(d.getFullYear(),d
 window.calendarDay=date=>{const x=schedule().find(q=>q.date===date);if(!x)return;const w=(window.PROGRAM||[]).find(q=>q.id===x.id);if(w&&typeof window.choose==='function')window.choose(x.id)};
 function addCalendarButton(){if(calendarOpen||setupOpen)return;const n=document.querySelector('.nav');if(!n||n.querySelector('[data-calendar]'))return;const b=document.createElement('button');b.type='button';b.dataset.calendar='1';b.innerHTML='▣<span>Calendar</span>';b.onclick=()=>window.calendarNav('calendar');n.insertBefore(b,n.children[1]||null)}
 function wrapStart(){if(startWrapped||typeof window.start!=='function')return;const original=window.start;window.start=()=>{const a=schedule(),done=completedDates(),td=today(),missed=a.filter(x=>x?.date<td&&!done.has(x.date)).sort((x,y)=>x.date.localeCompare(y.date)||String(x.id).localeCompare(String(y.id)))[0];if(missed){const todayWorkout=a.find(x=>x?.date===td),missedLabel=new Date(`${missed.date}T12:00:00`).toLocaleDateString('en-GB',{day:'numeric',month:'long'}),takeMissed=window.confirm(`You missed Workout #${missed.id} on ${missedLabel}.\n\nOK = do the missed workout now\nCancel = skip it and do today's workout.`),target=takeMissed?missed:todayWorkout;if(target){try{const d=JSON.parse(localStorage.getItem('myTrainingDashboard')||'{}');d.selected=String(target.id);localStorage.setItem('myTrainingDashboard',JSON.stringify(d))}catch{}}}original()};startWrapped=true}
-new MutationObserver(()=>{addCalendarButton();wrapStart()}).observe(document.documentElement,{childList:true,subtree:true});
 setTimeout(()=>{addCalendarButton();wrapStart()},100);
-setInterval(()=>{addCalendarButton();wrapStart()},500);
+setInterval(()=>{addCalendarButton();wrapStart()},1000);
 })();
