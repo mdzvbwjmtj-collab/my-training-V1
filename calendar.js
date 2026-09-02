@@ -1,0 +1,23 @@
+(()=>{
+const KEY='myTrainingSchedule';
+const today=()=>new Date().toISOString().slice(0,10);
+const addDays=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{return null}};
+const schedule=()=>{let a=read();if(!Array.isArray(a)||!a.length){a=(window.PROGRAM||[]).map((w,i)=>({id:w.id,date:addDays(today(),i)}));localStorage.setItem(KEY,JSON.stringify(a))}return a};
+const save=a=>localStorage.setItem(KEY,JSON.stringify(a));
+const completed=()=>{try{const s=JSON.parse(localStorage.getItem('myTrainingDashboard')||'{}');const out=new Set;Object.values(s.logs||{}).forEach(v=>{if(v&&v.done){const k=Object.keys(s.logs).find(x=>s.logs[x]===v);if(k){const p=k.split('::');if(p[1])out.add(p[1])}}});return out}catch{return new Set}};
+const required=()=>{const done=completed();return (window.PROGRAM||[]).find(w=>!done.has(w.id))?.id||(window.PROGRAM||[])[0]?.id};
+const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+const status=(x,done)=>done?'Completed':x.date<today()?'Missed':x.date===today()?'Today':'Scheduled';
+let calendarOpen=false,origGo=null,origStart=null,patched=false;
+function page(){const a=schedule(),done=completed(),req=required(),items=[...(window.PROGRAM||[])].map(w=>{const x=a.find(q=>q.id===w.id)||{id:w.id,date:addDays(today(),0)};return{w,x}});return `<main class="shell calendar-page"><div class="top"><div><div class="eyebrow">Schedule</div><div class="title">Calendar</div><div class="sub">Missed workouts stay due until completed</div></div></div><div class="card calendar-note"><b>Programme order is locked</b><div class="muted">Moving a workout changes its date, not its place in the 20-workout sequence.</div></div>${items.map(({w,x})=>{const st=status(x,done.has(w.id));return `<article class="card calendar-row ${st.toLowerCase()}"><div><div class="calendar-date">${fmt(x.date)}</div><h3>Workout #${esc(w.id)}</h3><div class="muted">${esc(w.type)} · ${w.exercises.length} exercises</div><span class="status">${st}${w.id===req&&!done.has(w.id)?' · Next due':''}</span></div><div class="calendar-move"><label>Move to</label><input type="date" value="${x.date}" onchange="calendarMove('${esc(w.id)}',this.value)"></div></article>`}).join('')}</main>${nav('calendar')}`}
+function nav(active){return `<nav class="nav"><button class="${active==='home'?'active':''}" onclick="calendarNav('home')">⌂<span>Home</span></button><button class="${active==='calendar'?'active':''}" onclick="calendarNav('calendar')">▣<span>Calendar</span></button><button class="${active==='plan'?'active':''}" onclick="calendarNav('plan')">☷<span>Plan</span></button><button class="${active==='progress'?'active':''}" onclick="calendarNav('progress')">⌁<span>Progress</span></button></nav>`}
+window.calendarMove=(id,date)=>{if(!date)return;const a=schedule(),x=a.find(q=>q.id===id);if(x)x.date=date;else a.push({id,date});save(a);renderCalendar()};
+window.calendarNav=s=>{if(s==='calendar'){calendarOpen=true;renderCalendar();return}calendarOpen=false;if(origGo)origGo(s)};
+function renderCalendar(){if(document.querySelector('.calendar-page')){document.querySelector('.calendar-page').outerHTML=page().match(/<main[\s\S]*?<\/main>/)[0];document.querySelector('.calendar-page').nextElementSibling?.remove();document.body.insertAdjacentHTML('beforeend',page().match(/<\/main>([\s\S]*)$/)?.[1]||'');return}document.body.innerHTML=page()}
+function patch(){if(patched)return;if(typeof window.go!=='function'||typeof window.start!=='function')return;origGo=window.go;origStart=window.start;window.go=(s)=>s==='calendar'?window.calendarNav('calendar'):origGo(s);window.start=()=>{const id=required();if(id&&window.choose)window.choose(id);origStart()};patched=true;fixNav();}
+function fixNav(){if(calendarOpen)return;const n=document.querySelector('.nav');if(!n)return;if(n.querySelector('[data-calendar]'))return;const b=document.createElement('button');b.dataset.calendar='1';b.innerHTML='▣<span>Calendar</span>';b.onclick=()=>window.calendarNav('calendar');n.insertBefore(b,n.children[1]||null)}
+new MutationObserver(()=>{patch();if(calendarOpen&&!document.querySelector('.calendar-page'))renderCalendar();else fixNav()}).observe(document.documentElement,{childList:true,subtree:true});
+setInterval(patch,200);setTimeout(patch,500);
+})();
