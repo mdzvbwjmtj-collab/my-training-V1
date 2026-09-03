@@ -1,0 +1,10 @@
+{
+  "name": "My Training",
+  "short_name": "My Training",
+  "id": "/my-training-V1/",
+  "start_url": "/my-training-V1/",
+  "scope": "/my-training-V1/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505"
+}
